@@ -3,11 +3,13 @@ package com.liu.config;
 import com.baomidou.mybatisplus.annotation.DbType;
 import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.core.exceptions.MybatisPlusException;
+import com.baomidou.mybatisplus.core.toolkit.StringPool;
 import com.baomidou.mybatisplus.core.toolkit.StringUtils;
 import com.baomidou.mybatisplus.generator.AutoGenerator;
 import com.baomidou.mybatisplus.generator.InjectionConfig;
 import com.baomidou.mybatisplus.generator.config.*;
 import com.baomidou.mybatisplus.generator.config.converts.MySqlTypeConvert;
+import com.baomidou.mybatisplus.generator.config.po.TableInfo;
 import com.baomidou.mybatisplus.generator.config.rules.NamingStrategy;
 import com.baomidou.mybatisplus.generator.engine.FreemarkerTemplateEngine;
 import org.springframework.beans.factory.annotation.Value;
@@ -87,6 +89,7 @@ public class MpGenerator {
         //生成文件的输出目录
         // TODO: 2020/4/5  不能修改为项目根目录路径 不然会替换当前项目修改文件
         String projectPath = System.getProperty("user.dir");
+//        String projectPath = System.getProperty("auth");
         globalConfig.setOutputDir(projectPath + "/src/main/java");
         //Author设置作者
         globalConfig.setAuthor("liu");
@@ -94,6 +97,7 @@ public class MpGenerator {
         globalConfig.setFileOverride(true);
         //生成后打开文件
         globalConfig.setOpen(false);
+        globalConfig.setSwagger2(true);
 
 
         //if (!serviceNameStartWithI) {
@@ -102,7 +106,7 @@ public class MpGenerator {
         globalConfig.setServiceName("%sService");
         globalConfig.setServiceImplName("%sServiceImpl");
         globalConfig.setControllerName("%sController");
-        globalConfig.setEntityName("%sEntity");
+//        globalConfig.setEntityName("%sEntity");
         globalConfig.setXmlName("%sMapper");
         //}
         mpg.setGlobalConfig(globalConfig);
@@ -134,69 +138,21 @@ public class MpGenerator {
          * 包配置
          */
         PackageConfig pc = new PackageConfig();
-        pc.setModuleName("com.mybatis");
+        pc.setModuleName(null);
         //父包名。如果为空，将下面子包名必须写全部， 否则就只需写子包名
         // TODO: 2020/4/5 修改输出包名
-        pc.setParent("tes");
+        pc.setParent(prefix);
         mpg.setPackageInfo(pc);
 
 
-        /**
-         * 自定义配置
-         */
-        InjectionConfig cfg = new InjectionConfig() {
-            @Override
-            public void initMap() {
-                // to do nothing
-            }
-        };
+
 
         /**
          * 模板
          */
-        //如果模板引擎是 freemarker
-        //String templatePath = "/templates/mapper.xml.ftl";
+
         // 如果模板引擎是 velocity
         // String templatePath = "/templates/mapper.xml.vm";
-
-
-        /**
-         * 自定义输出配置
-         */
-        List<FileOutConfig> focList = new ArrayList<>();
-        // 自定义配置会被优先输出
-       /* focList.add(new FileOutConfig(templatePath) {
-            @Override
-            public String outputFile(TableInfo tableInfo) {
-                // 自定义输出文件名 ， 如果你 Entity 设置了前后缀、此处注意 xml 的名称会跟着发生变化！！
-                return projectPath + "/src/main/resources/mapper/"+ pc.getModuleName()
-                        + "/" + tableInfo.getEntityName() + "Mapper" + StringPool.DOT_XML;
-            }
-        });*/
-        cfg.setFileOutConfigList(focList);
-        mpg.setCfg(cfg);
-
-        /**
-         * 配置模板
-         */
-        TemplateConfig templateConfig = new TemplateConfig();
-        // 配置自定义输出模板
-        // TODO: 2020/4/5 自定义模板  不使用的话会默认使用mybatis-plus的模板
-        //指定自定义模板路径，注意不要带上.ftl/.vm, 会根据使用的模板引擎自动识别
-        /*templateConfig.setEntity("/templates/entity.java");
-        templateConfig.setService("/templates/service.java");
-        templateConfig.setController("/templates/controller.java");
-        templateConfig.setServiceImpl("/templates/mapper.xml");
-        templateConfig.setServiceImpl("/templates/serviceImpl.java");
-*/
-
-        //templateConfig.setXml(null);
-        mpg.setTemplate(templateConfig);
-
-        /**
-         * 策略配置
-         */
-
         StrategyConfig strategy = new StrategyConfig();
         //设置命名格式
         strategy.setNaming(NamingStrategy.underline_to_camel);
@@ -220,6 +176,68 @@ public class MpGenerator {
         // TODO: 2020/4/5 删除第一个下划线之前的字母
         strategy.setTablePrefix(prefix);
         mpg.setStrategy(strategy);
+
+
+        /**
+         * 自定义配置
+         */
+        InjectionConfig cfg = new InjectionConfig() {
+            @Override
+            public void initMap() {
+                // to do nothing
+            }
+        };
+        /**
+         * 自定义输出配置
+         */
+        //如果模板引擎是 freemarker
+        String templatePath = "/templates/entityDTO.java.ftl";
+        List<FileOutConfig> focList = new ArrayList<>();
+        // 自定义配置会被优先输出
+        focList.add(new FileOutConfig(templatePath) {
+            @Override
+            public String outputFile(TableInfo tableInfo) {
+                // 自定义输出文件名 ， 如果你 Entity 设置了前后缀、此处注意 xml 的名称会跟着发生变化！！ + pc.getModuleName()
+                return projectPath +"/src/main/java/service/dto"
+                        + "/" + tableInfo.getEntityName() + "DTO" + StringPool.DOT_JAVA;
+            }
+        });
+
+        String voph = "/templates/entityVO.java.ftl";
+        // 自定义配置会被优先输出
+        focList.add(new FileOutConfig(voph) {
+            @Override
+            public String outputFile(TableInfo tableInfo) {
+                // 自定义输出文件名 ， 如果你 Entity 设置了前后缀、此处注意 xml 的名称会跟着发生变化！！ + pc.getModuleName()
+                return projectPath +"/src/main/java/service/vo"
+                        + "/" + tableInfo.getEntityName() + "VO" + StringPool.DOT_JAVA;
+            }
+        });
+        cfg.setFileOutConfigList(focList);
+        mpg.setCfg(cfg);
+
+        /**
+         * 配置模板
+         */
+//        TemplateConfig templateConfig = new TemplateConfig();
+        // 配置自定义输出模板
+        // TODO: 2020/4/5 自定义模板  不使用的话会默认使用mybatis-plus的模板
+        //指定自定义模板路径，注意不要带上.ftl/.vm, 会根据使用的模板引擎自动识别
+        /*templateConfig.setEntity("/templates/entity.java");
+        templateConfig.setService("/templates/service.java");
+        templateConfig.setController("/templates/controller.java");
+        templateConfig.setServiceImpl("/templates/mapper.xml");
+        templateConfig.setServiceImpl("/templates/serviceImpl.java");
+*/
+
+        //templateConfig.setXml(null);
+//        mpg.setTemplate(templateConfig);
+
+        /**
+         * 策略配置
+         */
+
+
         mpg.execute();
 
         System.out.println("**********************************************************");
